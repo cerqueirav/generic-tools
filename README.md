@@ -4,7 +4,7 @@
 
 ## Sobre
 
-O **GenericToolsAPI** é um conjunto de ferramentas projetadas para facilitar o desenvolvimento de aplicações em diversas áreas, oferecendo funcionalidades como geolocalização, conversão de formatos e notificações.
+O **GenericToolsAPI** é um conjunto de ferramentas projetadas em C# para facilitar o desenvolvimento de aplicações em diversas áreas, oferecendo funcionalidades como geolocalização, conversão de formatos e notificações.
 
 <a id="features"></a>
 
@@ -18,6 +18,8 @@ O **GenericToolsAPI** é um conjunto de ferramentas projetadas para facilitar o 
 - **Localização**
   - `POST /Localizacao/geolocalizacao`
   - `POST /Localizacao/geolocalizacao-reversa`
+  - `POST /Localizacao/limites-cidade`
+  - `POST /Localizacao/buscar-poi`
 
 - **Notificação**
   - `POST /Notificacao/email/enviar`
@@ -31,6 +33,8 @@ O **GenericToolsAPI** é um conjunto de ferramentas projetadas para facilitar o 
 - `CoordenadasRequest`
 - `EmailRequest`
 - `EnderecoRequest`
+- `LimiteCidadeRequest`
+- `PontoInteresseRequest`
 - `SmsRequest`
 - `WhatsAppRequest`
 
@@ -40,7 +44,7 @@ O **GenericToolsAPI** é um conjunto de ferramentas projetadas para facilitar o 
 
 O projeto está em constante desenvolvimento, e as próximas atualizações estarão focadas nas seguintes tarefas:
 
-<h3> Melhorias em Funcionalidades 🟠</h3>
+### Melhorias em Funcionalidades 🟠
 - Implementar validações adicionais para os inputs de localização. 🟠
 - Melhorar a documentação do Swagger UI. 🟠
 
