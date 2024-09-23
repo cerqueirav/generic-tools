@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
-using System.Threading.Tasks;
-using GenericToolsAPI.Services;
 using GenericToolsAPI.Services.Interfaces;
 
 namespace GenericToolsAPI.Controllers
