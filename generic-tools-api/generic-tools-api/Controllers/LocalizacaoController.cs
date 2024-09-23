@@ -131,5 +131,26 @@ namespace GenericToolsAPI.Controllers
             var content = await response.Content.ReadAsStringAsync();
             return Ok(content);
         }
+
+        /// <summary>
+        /// Obtém o IP público do usuário.
+        /// </summary>
+        [HttpGet("ip-publico")]
+        public async Task<IActionResult> ObterIpPublico()
+        {
+            var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "GenericToolsAPI/1.0");
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+
+            var response = await client.GetAsync("https://api.ipify.org?format=json");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode, "Erro ao obter o IP público.");
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            return Ok(content);
+        }
     }
 }
