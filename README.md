@@ -4,7 +4,7 @@
 
 ## Sobre
 
-O **GenericToolsAPI** é um conjunto de ferramentas projetadas em C# para facilitar o desenvolvimento de aplicações em diversas áreas, oferecendo funcionalidades como geolocalização, conversão de formatos e notificações.
+O **GenericToolsAPI** é um conjunto de ferramentas projetadas em C# para facilitar o desenvolvimento de aplicações em diversas áreas, oferecendo funcionalidades como geolocalização, conversão de formatos, notificações e tradução.
 
 <a id="features"></a>
 
@@ -20,6 +20,7 @@ O **GenericToolsAPI** é um conjunto de ferramentas projetadas em C# para facili
   - `POST /Localizacao/geolocalizacao-reversa`
   - `POST /Localizacao/limites-cidade`
   - `POST /Localizacao/buscar-poi`
+  - `GET /Localizacao/ip-publico`
 
 - **Notificação**
   - `POST /Notificacao/email/enviar`
@@ -29,6 +30,17 @@ O **GenericToolsAPI** é um conjunto de ferramentas projetadas em C# para facili
 - **QRCode**
   - `GET /QRCode/gerar-qrcode`
 
+- **Tradução**
+  - `POST /Traducao/mymemory/traduzir`
+  - `POST /Traducao/google/traduzir`
+
+- **YouTube**
+  - `GET /Youtube/buscar-video`
+  - `POST /Youtube/baixar-musicas`
+  - `POST /Youtube/baixar-video-por-titulo`
+  - `POST /Youtube/baixar-video-por-url`
+  - `POST /Youtube/baixar-musica-por-url`
+
 #### Schemas
 - `CoordenadasRequest`
 - `EmailRequest`
@@ -36,6 +48,8 @@ O **GenericToolsAPI** é um conjunto de ferramentas projetadas em C# para facili
 - `LimiteCidadeRequest`
 - `PontoInteresseRequest`
 - `SmsRequest`
+- `TraducaoGoogleRequest`
+- `TraducaoMyMemoryRequest`
 - `WhatsAppRequest`
 
 <a id="adjustments"></a>
