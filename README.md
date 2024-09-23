@@ -14,6 +14,7 @@ O **GenericToolsAPI** é um conjunto de ferramentas projetadas em C# para facili
 
 - **Conversor**
   - `POST /Conversor/excel-to-sql`
+  - `POST /Conversor/lista-para-excel`
 
 - **Localização**
   - `POST /Localizacao/geolocalizacao`
