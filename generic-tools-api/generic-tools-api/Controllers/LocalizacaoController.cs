@@ -39,7 +39,7 @@ namespace GenericToolsAPI.Controllers
 
             if (!response.IsSuccessStatusCode)
             {
-                return StatusCode((int)response.StatusCode, "Error fetching data from OSM.");
+                return StatusCode((int)response.StatusCode, "Erro ao consultar os dados do OSM.");
             }
 
             var content = await response.Content.ReadAsStringAsync();
