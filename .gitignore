@@ -1,0 +1,9 @@
+﻿################################################################################
+# Este arquivo .gitignore foi criado automaticamente pelo Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/generic-tools-api/generic-tools-api/obj
+/generic-tools-api/.vs/generic-tools-api
+/generic-tools-api/generic-tools-api/bin/Debug/net7.0
+/generic-tools-api/.vs/ProjectEvaluation
