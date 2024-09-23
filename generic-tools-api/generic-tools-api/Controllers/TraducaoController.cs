@@ -19,6 +19,11 @@ namespace GenericToolsAPI.Controllers
             _googleSettings = googleSettings.Value;
         }
 
+        /// <summary>
+        /// Traduz um texto utilizando a API MyMemory de tradução.
+        /// </summary>
+        /// <param name="request">Objeto contendo o texto a ser traduzido, idioma de origem e idioma de destino.</param>
+        /// <returns>Um IActionResult com o texto traduzido ou uma mensagem de erro.</returns>
         [HttpPost("mymemory/traduzir")]
         public async Task<IActionResult> Traduzir([FromBody] TraducaoMyMemoryRequest request)
         {
@@ -41,6 +46,11 @@ namespace GenericToolsAPI.Controllers
             return Ok(translatedResponse);
         }
 
+        /// <summary>
+        /// Traduz um texto utilizando a API Google Translate.
+        /// </summary>
+        /// <param name="request">Objeto contendo o texto a ser traduzido e o idioma de destino.</param>
+        /// <returns>Um IActionResult com o texto traduzido ou uma mensagem de erro.</returns>
         [HttpPost("google/traduzir")]
         public async Task<IActionResult> Traduzir([FromBody] TraducaoGoogleRequest request)
         {
