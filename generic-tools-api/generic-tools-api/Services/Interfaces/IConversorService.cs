@@ -1,7 +1,10 @@
-﻿namespace GenericToolsAPI.Services.Interfaces
+﻿using System.Dynamic;
+
+namespace GenericToolsAPI.Services.Interfaces
 {
     public interface IConversorService
     {
-        Task<string> GenerateSqlScriptAsync(IFormFile file, string tableName);
+        Task<string> ConverterExcelParaSql(IFormFile file, string tableName);
+        byte[] ConverterListaParaExcel(List<ExpandoObject> objects);
     }
 }

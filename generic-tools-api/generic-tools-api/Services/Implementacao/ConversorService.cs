@@ -1,12 +1,13 @@
 ﻿using GenericToolsAPI.Services.Interfaces;
 using OfficeOpenXml;
+using System.Dynamic;
 using System.Text;
 
 namespace GenericToolsAPI.Services.Implementacao
 {
     public class ConversorService : IConversorService
     {
-        public async Task<string> GenerateSqlScriptAsync(IFormFile file, string tableName)
+        public async Task<string> ConverterExcelParaSql(IFormFile file, string tableName)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
@@ -60,6 +61,42 @@ namespace GenericToolsAPI.Services.Implementacao
             }
 
             return sqlCommands.ToString();
+        }
+
+        public byte[] ConverterListaParaExcel(List<ExpandoObject> objects)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            if (objects == null || objects.Count == 0)
+                throw new ArgumentException("A lista de objetos não pode ser vazia.");
+
+            using (var package = new ExcelPackage())
+            {
+                var worksheet = package.Workbook.Worksheets.Add("Sheet1");
+
+                var firstObject = objects.First();
+                var dictionary = firstObject as IDictionary<string, object>;
+                if (dictionary == null || dictionary.Count == 0)
+                    throw new ArgumentException("O tipo de objeto não possui propriedades.");
+
+                int columnIndex = 1;
+                foreach (var key in dictionary.Keys)
+                {
+                    worksheet.Cells[1, columnIndex++].Value = key;
+                }
+
+                for (int rowIndex = 0; rowIndex < objects.Count; rowIndex++)
+                {
+                    var objDict = objects[rowIndex] as IDictionary<string, object>;
+                    columnIndex = 1;
+                    foreach (var value in objDict.Values)
+                    {
+                        worksheet.Cells[rowIndex + 2, columnIndex++].Value = value;
+                    }
+                }
+
+                return package.GetAsByteArray();
+            }
         }
     }
 }
