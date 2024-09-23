@@ -10,6 +10,7 @@ builder.Services.Configure<TwilioSettings>(builder.Configuration.GetSection("Twi
 builder.Services.Configure<GoogleSettings>(builder.Configuration.GetSection("GoogleSettings"));
 
 builder.Services.AddScoped<ITraducaoService, TraducaoService>();
+builder.Services.AddScoped<IYoutubeService, YoutubeService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

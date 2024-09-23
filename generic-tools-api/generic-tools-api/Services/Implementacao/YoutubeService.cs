@@ -5,10 +5,11 @@ using NAudio.Wave;
 using YoutubeExplode.Common;
 using YoutubeExplode.Search;
 using System.Text.RegularExpressions;
+using GenericToolsAPI.Services.Interfaces;
 
-namespace generic_tools_api.Services.Implementacao
+namespace GenericToolsAPI.Services.Implementacao
 {
-    public class YoutubeService
+    public class YoutubeService : IYoutubeService
     {
         private readonly YoutubeClient _youtube;
         private const string OutputDirectory = @"C:\arquivos_youtube_tmp";
