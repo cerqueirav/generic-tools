@@ -14,6 +14,7 @@ builder.Services.AddScoped<IYoutubeService, YoutubeService>();
 builder.Services.AddScoped<IQrCodeService, QrCodeService>();
 builder.Services.AddScoped<INotificacaoService, NotificacaoService>();
 builder.Services.AddScoped<ILocalizacaoService, LocalizacaoService>();
+builder.Services.AddScoped<IConversorService, ConversorService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
