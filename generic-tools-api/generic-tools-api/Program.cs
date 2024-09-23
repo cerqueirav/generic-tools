@@ -11,6 +11,7 @@ builder.Services.Configure<GoogleSettings>(builder.Configuration.GetSection("Goo
 
 builder.Services.AddScoped<ITraducaoService, TraducaoService>();
 builder.Services.AddScoped<IYoutubeService, YoutubeService>();
+builder.Services.AddScoped<IQrCodeService, QrCodeService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

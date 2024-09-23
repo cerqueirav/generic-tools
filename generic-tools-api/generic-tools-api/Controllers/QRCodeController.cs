@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using QRCoder;
 using System.Net.Mime;
+using System.Threading.Tasks;
+using GenericToolsAPI.Services;
+using GenericToolsAPI.Services.Interfaces;
 
 namespace GenericToolsAPI.Controllers
 {
@@ -8,13 +10,20 @@ namespace GenericToolsAPI.Controllers
     [Route("[controller]")]
     public class QRCodeController : ControllerBase
     {
+        private readonly IQrCodeService _qrCodeService;
+
+        public QRCodeController(IQrCodeService qrCodeService)
+        {
+            _qrCodeService = qrCodeService;
+        }
+
         /// <summary>
         /// Gera um QR Code a partir do texto fornecido.
         /// </summary>
         /// <param name="text">Texto a ser codificado no QR Code.</param>
         /// <returns>Imagem do QR Code em formato PNG.</returns>
         [HttpGet("gerar-qrcode")]
-        public IActionResult GerarQRCode(string text)
+        public async Task<IActionResult> GerarQRCode(string text)
         {
             if (string.IsNullOrWhiteSpace(text))
             {
@@ -23,12 +32,7 @@ namespace GenericToolsAPI.Controllers
 
             try
             {
-                using var qrGenerator = new QRCodeGenerator();
-                using var qrCodeData = qrGenerator.CreateQrCode(text, QRCodeGenerator.ECCLevel.Q);
-                using var qrCode = new PngByteQRCode(qrCodeData);
-
-                byte[] qrCodeImage = qrCode.GetGraphic(20);
-
+                byte[] qrCodeImage = await _qrCodeService.GerarQRCodeAsync(text);
                 return File(qrCodeImage, MediaTypeNames.Image.Jpeg);
             }
             catch (Exception ex)
