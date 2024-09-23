@@ -1,5 +1,6 @@
 using GenericToolsAPI.Models;
-using GenericToolsAPI.Services;
+using GenericToolsAPI.Services.Implementacao;
+using GenericToolsAPI.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,7 +9,7 @@ builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Emai
 builder.Services.Configure<TwilioSettings>(builder.Configuration.GetSection("TwilioSettings"));
 builder.Services.Configure<GoogleSettings>(builder.Configuration.GetSection("GoogleSettings"));
 
-builder.Services.AddSingleton<YoutubeService>();
+builder.Services.AddScoped<ITraducaoService, TraducaoService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

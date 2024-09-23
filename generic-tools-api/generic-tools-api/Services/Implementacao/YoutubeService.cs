@@ -6,7 +6,7 @@ using YoutubeExplode.Common;
 using YoutubeExplode.Search;
 using System.Text.RegularExpressions;
 
-namespace GenericToolsAPI.Services
+namespace generic_tools_api.Services.Implementacao
 {
     public class YoutubeService
     {

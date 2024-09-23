@@ -1,4 +1,4 @@
-using GenericToolsAPI.Services;
+using generic_tools_api.Services.Implementacao;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GenericToolsAPI.Controllers

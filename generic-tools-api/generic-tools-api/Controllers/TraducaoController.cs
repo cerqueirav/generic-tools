@@ -1,7 +1,6 @@
 using GenericToolsAPI.Models;
+using GenericToolsAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using System.Text;
 
 namespace GenericToolsAPI.Controllers
 {
@@ -9,14 +8,11 @@ namespace GenericToolsAPI.Controllers
     [Route("[controller]")]
     public class TraducaoController : ControllerBase
     {
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ITraducaoService _traducaoService;
 
-        private readonly GoogleSettings _googleSettings;
-
-        public TraducaoController(IHttpClientFactory httpClientFactory, IOptions<GoogleSettings> googleSettings)
+        public TraducaoController(ITraducaoService traducaoService)
         {
-            _httpClientFactory = httpClientFactory;
-            _googleSettings = googleSettings.Value;
+            _traducaoService = traducaoService;
         }
 
         /// <summary>
@@ -25,25 +21,22 @@ namespace GenericToolsAPI.Controllers
         /// <param name="request">Objeto contendo o texto a ser traduzido, idioma de origem e idioma de destino.</param>
         /// <returns>Um IActionResult com o texto traduzido ou uma mensagem de erro.</returns>
         [HttpPost("mymemory/traduzir")]
-        public async Task<IActionResult> Traduzir([FromBody] TraducaoMyMemoryRequest request)
+        public async Task<IActionResult> TraduzirMyMemory([FromBody] TraducaoMyMemoryRequest request)
         {
             if (string.IsNullOrEmpty(request.Texto) || string.IsNullOrEmpty(request.IdiomaDestino) || string.IsNullOrEmpty(request.IdiomaOrigem))
             {
                 return BadRequest("Texto, idioma de destino e idioma de origem são obrigatórios.");
             }
 
-            var client = _httpClientFactory.CreateClient();
-            var requestUri = $"https://api.mymemory.translated.net/get?q={Uri.EscapeDataString(request.Texto)}&langpair={request.IdiomaOrigem}|{request.IdiomaDestino}";
-
-            var response = await client.GetAsync(requestUri);
-
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                return StatusCode((int)response.StatusCode, "Erro ao traduzir o texto.");
+                var translatedResponse = await _traducaoService.TraduzirMyMemory(request);
+                return Ok(translatedResponse);
             }
-
-            var translatedResponse = await response.Content.ReadAsStringAsync();
-            return Ok(translatedResponse);
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         /// <summary>
@@ -52,33 +45,22 @@ namespace GenericToolsAPI.Controllers
         /// <param name="request">Objeto contendo o texto a ser traduzido e o idioma de destino.</param>
         /// <returns>Um IActionResult com o texto traduzido ou uma mensagem de erro.</returns>
         [HttpPost("google/traduzir")]
-        public async Task<IActionResult> Traduzir([FromBody] TraducaoGoogleRequest request)
+        public async Task<IActionResult> TraduzirGoogle([FromBody] TraducaoGoogleRequest request)
         {
             if (string.IsNullOrEmpty(request.Texto) || string.IsNullOrEmpty(request.IdiomaDestino))
             {
                 return BadRequest("Texto e idioma de destino são obrigatórios.");
             }
 
-            var client = _httpClientFactory.CreateClient();
-            var requestBody = new
+            try
             {
-                q = request.Texto,
-                target = request.IdiomaDestino,
-            };
-
-            var json = System.Text.Json.JsonSerializer.Serialize(requestBody);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var requestUri = $"https://translation.googleapis.com/language/translate/v2?key={_googleSettings.ChaveApi}";
-            var response = await client.PostAsync(requestUri, content);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var translatedResponse = await response.Content.ReadAsStringAsync();
+                var translatedResponse = await _traducaoService.TraduzirGoogle(request);
                 return Ok(translatedResponse);
             }
-
-            return StatusCode((int)response.StatusCode, "Erro ao traduzir o texto.");
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
     }
 }
