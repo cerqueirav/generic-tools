@@ -85,4 +85,4 @@ Esse projeto foi desenvolvido utilizando as seguintes tecnologias e pacotes:
 - Abra o terminal do Visual Studio Code.
 - Digite (troque `cerqueirav` pelo nome do seu usuário): 
   ```bash
-  git clone https://github.com/cerqueirav/GenericToolsAPI
+  git clone https://github.com/cerqueirav/generic-tools-api
