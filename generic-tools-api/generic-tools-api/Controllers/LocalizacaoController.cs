@@ -15,6 +15,9 @@ namespace GenericToolsAPI.Controllers
             _httpClientFactory = httpClientFactory;
         }
 
+        /// <summary>
+        /// Obtém a geolocalização a partir do endereço fornecido (Rua, Número, Bairro, Cidade, País).
+        /// </summary>
         [HttpPost("geolocalizacao")]
         public async Task<IActionResult> Geolocalizacao([FromBody] EnderecoRequest endereco)
         {
@@ -43,7 +46,9 @@ namespace GenericToolsAPI.Controllers
             return Ok(content);
         }
 
-
+        /// <summary>
+        /// Realiza a geolocalização reversa a partir das coordenadas fornecidas (Latitude, Longitude).
+        /// </summary>
         [HttpPost("geolocalizacao-reversa")]
         public async Task<IActionResult> GeolocalizacaoReversa([FromBody] CoordenadasRequest coords)
         {
@@ -57,6 +62,64 @@ namespace GenericToolsAPI.Controllers
             client.DefaultRequestHeaders.Add("Accept", "application/json");
 
             var url = $"https://nominatim.openstreetmap.org/reverse?lat={coords.Latitude.ToString(CultureInfo.InvariantCulture)}&lon={coords.Longitude.ToString(CultureInfo.InvariantCulture)}&format=json";
+
+            var response = await client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode, "Erro ao consultar os dados do OSM.");
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            return Ok(content);
+        }
+
+        /// <summary>
+        /// Obtém os limites geográficos da cidade com base no nome da cidade, estado e país fornecidos.
+        /// </summary>
+        [HttpPost("limites-cidade")]
+        public async Task<IActionResult> LimitesCidade([FromBody] LimiteCidadeRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Cidade) || string.IsNullOrEmpty(request.Estado) || string.IsNullOrEmpty(request.Pais))
+            {
+                return BadRequest("Todos os parâmetros (Cidade, Estado, País) são obrigatórios.");
+            }
+
+            var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "GenericToolsAPI/1.0");
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+
+            var query = $"{Uri.EscapeDataString(request.Cidade)}, {Uri.EscapeDataString(request.Estado)}, {Uri.EscapeDataString(request.Pais)}";
+            var url = $"https://nominatim.openstreetmap.org/search?q={query}&format=json&addressdetails=1&limit=1";
+
+            var response = await client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return StatusCode((int)response.StatusCode, "Erro ao consultar os dados do OSM.");
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            return Ok(content);
+        }
+
+        /// <summary>
+        /// Busca Pontos de Interesse (POI) com base no tipo, cidade, estado e país fornecidos.
+        /// </summary>
+        [HttpPost("buscar-poi")]
+        public async Task<IActionResult> BuscarPOI([FromBody] PontoInteresseRequest poiRequest)
+        {
+            if (string.IsNullOrEmpty(poiRequest.TipoPOI) || string.IsNullOrEmpty(poiRequest.Cidade) || string.IsNullOrEmpty(poiRequest.Estado) || string.IsNullOrEmpty(poiRequest.Pais))
+            {
+                return BadRequest("Os campos de POI, cidade, estado e país são obrigatórios.");
+            }
+
+            var client = _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "GenericToolsAPI/1.0");
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+
+            var query = $"{Uri.EscapeDataString(poiRequest.TipoPOI)} in {Uri.EscapeDataString(poiRequest.Cidade)}, {Uri.EscapeDataString(poiRequest.Estado)}, {Uri.EscapeDataString(poiRequest.Pais)}";
+            var url = $"https://nominatim.openstreetmap.org/search?q={query}&format=json";
 
             var response = await client.GetAsync(url);
 
