@@ -1,9 +1,5 @@
-using YoutubeExplode;
-using YoutubeExplode.Videos.Streams;
+using GenericToolsAPI.Services;
 using Microsoft.AspNetCore.Mvc;
-using GenericToolsAPI.Models;
-using NAudio.Lame;
-using NAudio.Wave;
 
 namespace GenericToolsAPI.Controllers
 {
@@ -11,155 +7,185 @@ namespace GenericToolsAPI.Controllers
     [Route("[controller]")]
     public class YoutubeController : ControllerBase
     {
-        private readonly YoutubeClient _youtube;
-        private const string OutputDirectory = @"C:\arquivos_youtube_tmp";
+        private readonly YoutubeService _youtubeService;
 
+        /// <summary>
+        /// Construtor do controlador que inicializa o serviço do YouTube.
+        /// </summary>
         public YoutubeController()
         {
-            _youtube = new YoutubeClient();
-            Directory.CreateDirectory(OutputDirectory);
+            _youtubeService = new YoutubeService();
         }
 
         /// <summary>
-        /// Baixa vídeos ou áudios do YouTube com base nas URLs fornecidas.
+        /// Busca um vídeo pelo título.
         /// </summary>
-        /// <param name="request">Requisição contendo as URLs dos vídeos e o formato desejado (mp3 ou vídeo).</param>
-        /// <returns>Uma lista de arquivos salvos com sucesso ou um erro se houver falha no processo.</returns>
-        [HttpPost("baixar")]
-        public async Task<IActionResult> Baixar([FromBody] VideoYoutubeRequest request)
+        /// <param name="titulo">Título do vídeo a ser buscado.</param>
+        /// <returns>Informações do vídeo encontrado.</returns>
+        [HttpGet("buscar-video")]
+        public async Task<IActionResult> BuscarVideo([FromQuery] string titulo)
         {
-            if (request.VideoUrls == null || !request.VideoUrls.Any())
+            if (string.IsNullOrWhiteSpace(titulo))
             {
-                return BadRequest("A lista de URLs de vídeo é obrigatória.");
+                return BadRequest("O título do vídeo é obrigatório.");
             }
 
             try
             {
-                var savedFiles = new List<string>();
-
-                foreach (var videoUrl in request.VideoUrls)
+                var video = await _youtubeService.BuscarVideoPorTitulo(titulo);
+                if (video == null)
                 {
-                    try
-                    {
-                        var videoId = ExtrairVideoId(videoUrl);
-                        var filePath = await BaixarArquivo(videoId, request.Format);
-
-                        savedFiles.Add(filePath); 
-                    }
-                    catch (Exception ex)
-                    {
-                        return StatusCode(500, $"Erro ao baixar o vídeo: {ex.Message}");
-                    }
+                    return NotFound("Nenhum vídeo encontrado.");
                 }
 
-                return Ok(new { Message = "Vídeos baixados com sucesso.", Arquivos = savedFiles });
+                return Ok(new
+                {
+                    VideoId = video.Id,
+                    Titulo = video.Title,
+                    Link = $"https://www.youtube.com/watch?v={video.Id}"
+                });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Erro ao baixar os vídeos: {ex.Message}");
+                return StatusCode(500, $"Erro ao buscar vídeo: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Extrai o ID do vídeo da URL fornecida.
+        /// Baixa múltiplas músicas.
         /// </summary>
-        /// <param name="url">URL completa do vídeo do YouTube.</param>
-        /// <returns>O ID do vídeo.</returns>
-        private string ExtrairVideoId(string url)
+        /// <param name="titulos">Lista de títulos das músicas a serem baixadas.</param>
+        /// <returns>Lista de arquivos baixados.</returns>
+        [HttpPost("baixar-musicas")]
+        public async Task<IActionResult> BaixarMusicas([FromBody] List<string> titulos)
         {
-            var uri = new Uri(url);
-            var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-            return query["v"] ?? uri.Segments.Last();
-        }
-
-        /// <summary>
-        /// Baixa o vídeo ou áudio no formato solicitado.
-        /// </summary>
-        /// <param name="videoId">ID do vídeo do YouTube.</param>
-        /// <param name="format">Formato desejado (mp3 ou vídeo).</param>
-        /// <returns>O caminho do arquivo salvo.</returns>
-        private async Task<string> BaixarArquivo(string videoId, string format)
-        {
-            var video = await _youtube.Videos.GetAsync(videoId);
-            var safeTitle = SanitizeFileName(video.Title);
-            var filePath = Path.Combine(OutputDirectory, $"{safeTitle}.{format}");
-
-            if (format.Equals("mp3", StringComparison.OrdinalIgnoreCase))
+            if (titulos == null || !titulos.Any())
             {
-                await BaixarEConverterParaMp3(videoId, filePath, safeTitle);
-            }
-            else
-            {
-                await BaixarVideoArquivo(videoId, filePath);
+                return BadRequest("A lista de títulos de músicas é obrigatória.");
             }
 
-            return filePath;
-        }
-
-        /// <summary>
-        /// Baixa o vídeo e converte o áudio para o formato MP3.
-        /// </summary>
-        /// <param name="videoId">ID do vídeo do YouTube.</param>
-        /// <param name="outputFilePath">Caminho onde o arquivo MP3 será salvo.</param>
-        /// <param name="safeTitle">Nome sanitizado do vídeo para evitar caracteres inválidos no nome do arquivo.</param>
-        private async Task BaixarEConverterParaMp3(string videoId, string outputFilePath, string safeTitle)
-        {
-            var tempMp4FilePath = Path.Combine(Path.GetTempPath(), $"{safeTitle}.mp4");
-
-            var streamManifest = await _youtube.Videos.Streams.GetManifestAsync(videoId);
-            var streamInfo = streamManifest.GetAudioStreams().GetWithHighestBitrate();
-            await _youtube.Videos.Streams.DownloadAsync(streamInfo, tempMp4FilePath);
-
-            ConverterParaMp3(tempMp4FilePath, outputFilePath);
-        }
-
-        /// <summary>
-        /// Baixa o vídeo no formato de arquivo desejado.
-        /// </summary>
-        /// <param name="videoId">ID do vídeo do YouTube.</param>
-        /// <param name="outputFilePath">Caminho onde o arquivo de vídeo será salvo.</param>
-        private async Task BaixarVideoArquivo(string videoId, string outputFilePath)
-        {
-            var streamManifest = await _youtube.Videos.Streams.GetManifestAsync(videoId);
-            var streamInfo = streamManifest.GetVideoStreams().GetWithHighestBitrate();
-            await _youtube.Videos.Streams.DownloadAsync(streamInfo, outputFilePath);
-        }
-
-        /// <summary>
-        /// Converte o arquivo de vídeo (MP4) para MP3.
-        /// </summary>
-        /// <param name="inputFilePath">Caminho do arquivo MP4 temporário.</param>
-        /// <param name="outputFilePath">Caminho onde o arquivo MP3 será salvo.</param>
-        private void ConverterParaMp3(string inputFilePath, string outputFilePath)
-        {
-            using (var reader = new MediaFoundationReader(inputFilePath))
+            var savedFiles = new List<string>();
+            foreach (var titulo in titulos)
             {
-                using (var writer = new LameMP3FileWriter(outputFilePath, reader.WaveFormat, LAMEPreset.STANDARD))
+                var video = await _youtubeService.BuscarVideoPorTitulo(titulo);
+                if (video != null)
                 {
-                    reader.CopyTo(writer);
+                    var filePath = await _youtubeService.BaixarArquivo(video.Id, "mp3");
+                    savedFiles.Add(filePath);
                 }
             }
+
+            return Ok(new { Message = "Músicas baixadas com sucesso.", Arquivos = savedFiles });
         }
 
         /// <summary>
-        /// Sanitiza o nome do arquivo, removendo caracteres inválidos.
+        /// Baixa um vídeo pelo título.
         /// </summary>
-        /// <param name="fileName">Nome original do arquivo.</param>
-        /// <returns>O nome sanitizado do arquivo.</returns>
-        private string SanitizeFileName(string fileName)
+        /// <param name="titulo">Título do vídeo a ser baixado.</param>
+        /// <returns>Arquivo do vídeo baixado.</returns>
+        [HttpPost("baixar-video-por-titulo")]
+        public async Task<IActionResult> BaixarVideoPorTitulo([FromBody] string titulo)
         {
-            var invalidChars = Path.GetInvalidFileNameChars();
-            var sanitizedFileName = new string(fileName
-                .Select(c => invalidChars.Contains(c) ? ' ' : c)
-                .ToArray());
-
-            const int maxFileNameLength = 255;
-            if (sanitizedFileName.Length > maxFileNameLength)
+            if (string.IsNullOrWhiteSpace(titulo))
             {
-                sanitizedFileName = sanitizedFileName.Substring(0, maxFileNameLength);
+                return BadRequest("O título do vídeo é obrigatório.");
             }
 
-            return sanitizedFileName;
+            try
+            {
+                var video = await _youtubeService.BuscarVideoPorTitulo(titulo);
+                if (video == null)
+                {
+                    return NotFound("Vídeo não encontrado.");
+                }
+
+                var filePath = await _youtubeService.BaixarArquivo(video.Id, "mp4");
+                return Ok(new
+                {
+                    Message = "Vídeo baixado com sucesso.",
+                    Arquivo = filePath,
+                    Titulo = video.Title,
+                    Link = $"https://www.youtube.com/watch?v={video.Id}"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro ao baixar vídeo: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Baixa um vídeo pela URL.
+        /// </summary>
+        /// <param name="url">URL do vídeo a ser baixado.</param>
+        /// <returns>Arquivo do vídeo baixado.</returns>
+        [HttpPost("baixar-video-por-url")]
+        public async Task<IActionResult> BaixarVideoPorUrl([FromBody] string url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return BadRequest("A URL do vídeo é obrigatória.");
+            }
+
+            try
+            {
+                var videoId = _youtubeService.ExtrairVideoId(url);
+                if (videoId == null)
+                {
+                    return BadRequest("URL inválida.");
+                }
+
+                var video = await _youtubeService.BuscarVideoPorTitulo(videoId);
+                var filePath = await _youtubeService.BaixarArquivo(video.Id, "mp4");
+                return Ok(new
+                {
+                    Message = "Vídeo baixado com sucesso.",
+                    Arquivo = filePath,
+                    Titulo = video.Title,
+                    Link = $"https://www.youtube.com/watch?v={video.Id}"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro ao baixar vídeo: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Baixa uma música pela URL.
+        /// </summary>
+        /// <param name="url">URL da música a ser baixada.</param>
+        /// <returns>Arquivo da música baixada.</returns>
+        [HttpPost("baixar-musica-por-url")]
+        public async Task<IActionResult> BaixarMusicaPorUrl([FromBody] string url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return BadRequest("A URL da música é obrigatória.");
+            }
+
+            try
+            {
+                var videoId = _youtubeService.ExtrairVideoId(url);
+                if (videoId == null)
+                {
+                    return BadRequest("URL inválida.");
+                }
+
+                var video = await _youtubeService.BuscarVideoPorTitulo(videoId);
+                var filePath = await _youtubeService.BaixarArquivo(video.Id, "mp3");
+                return Ok(new
+                {
+                    Message = "Música baixada com sucesso.",
+                    Arquivo = filePath,
+                    Titulo = video.Title,
+                    Link = $"https://www.youtube.com/watch?v={video.Id}"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro ao baixar música: {ex.Message}");
+            }
         }
     }
 }
